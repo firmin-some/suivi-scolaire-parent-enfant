@@ -1,0 +1,16 @@
+Bonjour Monsieur Kaboré,
+
+Veuillez trouver ci-dessous le lien du dépôt GitHub de notre projet « Application Mobile de Suivi Scolaire Parent-Enfant » :
+
+https://github.com/firmin-some/suivi-scolaire-parent-enfant
+
+Le dépôt est public et contient :
+- Le code source complet (backend Laravel + application Android)
+- Un fichier README.md détaillant le sujet, les membres du groupe, l'installation et les fonctionnalités
+
+Membres du groupe :
+- SOME Firmin
+- MOYENGA Aziz
+
+Cordialement,
+SOME Firmin et MOYENGA Aziz

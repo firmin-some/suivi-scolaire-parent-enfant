@@ -2,7 +2,7 @@
 
 Application mobile permettant aux parents d'élèves de suivre en temps réel la scolarité de leurs enfants dans un établissement primaire (du CP1 au CM2) : notes, paiements, absences, annonces et notifications de l'école.
 
-Ce projet est **directement connecté** à l'application web de gestion scolaire **EcolePrime** — les deux partagent la même base de données MySQL. Toute action effectuée par le gestionnaire ou l'enseignant sur l'app web (saisie de notes, enregistrement de paiements, publication d'annonces) est immédiatement visible par le parent depuis l'app mobile.
+Ce projet est **directement connecté** à l'application web de gestion scolaire **EcolePrime** — les deux partagent la même base de données MySQL. Toute action effectuée par le gestionnaire ou l'enseignant sur l'app web (saisie de notes, signalement d'absences, publication d'annonces) est immédiatement visible par le parent depuis l'app mobile.
 
 Projet réalisé dans le cadre du cours de **Développement Mobile**, UJKZ — Cahier des charges du 16 juin 2026.
 
@@ -48,28 +48,31 @@ Projet réalisé dans le cadre du cours de **Développement Mobile**, UJKZ — C
 - Notes par matière (Français, Mathématiques, Sciences, Histoire-Géo, Anglais, EPS)
 - Regroupement par trimestre (T1, T2, T3)
 - Calcul et affichage des moyennes trimestrielles
-- Téléchargement du bulletin scolaire au format PDF (en-tête établissement)
+- Téléchargement du bulletin scolaire au format PDF (en-tête établissement, mention, infos élève et parent)
 
 ### Suivi des paiements
 - Montant total dû (basé sur les frais de la classe), montant payé, montant restant
 - Historique des versements effectués
 - Simulation de paiement (formulaire : montant + mode de paiement)
-- Génération et consultation du reçu de paiement au format PDF (avec infos élève, parent et établissement)
+- Génération et consultation du reçu de paiement au format PDF (en-tête établissement, infos élève et parent)
 
 ### Suivi des absences
 - Liste des absences de l'élève
 - Motif de l'absence (si renseigné) et statut justifiée / non justifiée
+- Notification automatique envoyée au parent dès qu'une absence est signalée par l'enseignant
 
 ### Annonces et notifications
 - Réception des annonces publiées par le gestionnaire depuis l'app web
-- Notifications personnalisées par élève (réunions, examens, paiements, etc.)
+- Notifications personnalisées par élève (absences, réunions, examens, paiements, etc.)
 - Badge "Nouveau" sur les notifications non lues
-- Marquage automatique comme lu au clic
+- Marquage comme lu au clic
 
-### Côté application web (EcolePrime — gestionnaire)
+### Côté application web EcolePrime (gestionnaire / enseignant)
+- Saisie des notes par matière et par trimestre
+- Signalement des absences avec notification automatique au parent
 - Publication d'annonces avec envoi automatique de notifications à tous les élèves
 - Les paiements effectués depuis l'app mobile sont immédiatement visibles dans l'app web
-- Les notes saisies par les enseignants dans l'app web sont immédiatement consultables par les parents dans l'app mobile
+- Génération du bulletin scolaire PDF depuis l'interface web
 
 ---
 
@@ -93,22 +96,40 @@ Projet réalisé dans le cadre du cours de **Développement Mobile**, UJKZ — C
 
 ```
 suivi-scolaire-parent-enfant/
-├── backend/        # API REST Laravel (projet web EcolePrime avec routes API ajoutées)
+├── backend/        # Projet web EcolePrime avec API REST intégrée
 │   ├── app/
-│   │   ├── Http/Controllers/Api/   # Contrôleurs API mobile
+│   │   ├── Http/Controllers/
+│   │   │   ├── Api/              # Contrôleurs API mobile
+│   │   │   │   ├── AuthApiController.php
+│   │   │   │   ├── EleveApiController.php
+│   │   │   │   ├── NoteApiController.php
+│   │   │   │   ├── PaiementApiController.php
+│   │   │   │   ├── AbsenceApiController.php
+│   │   │   │   ├── AnnonceApiController.php
+│   │   │   │   └── NotificationApiController.php
+│   │   │   ├── AbsenceController.php   # Gestion absences (web)
+│   │   │   └── AnnonceController.php   # Gestion annonces (web)
 │   │   └── Models/
 │   ├── resources/views/
-│   │   ├── annonces/               # Vues web pour la gestion des annonces
-│   │   └── pdf/                    # Templates PDF (reçu, bulletin)
+│   │   ├── absences/             # Vue web signalement absences
+│   │   ├── annonces/             # Vue web gestion annonces
+│   │   └── pdf/                  # Templates PDF (reçu, bulletin)
 │   └── routes/
-│       ├── api.php                 # Routes API consommées par l'app mobile
-│       └── web.php                 # Routes web (app EcolePrime)
+│       ├── api.php               # 8 routes API consommées par l'app mobile
+│       └── web.php               # Routes web (EcolePrime)
 ├── mobile/         # Application Android (Kotlin / Jetpack Compose)
 │   └── app/src/main/java/
-│       ├── network/                # Modèles et service Retrofit
-│       ├── repository/             # Logique métier et appels API
-│       ├── viewmodel/              # ViewModels (MVVM)
-│       └── ui/                     # Écrans Compose
+│       ├── network/              # Modèles JSON et service Retrofit
+│       ├── repository/           # Logique métier et appels API
+│       ├── viewmodel/            # ViewModels (MVVM)
+│       └── ui/                   # Écrans Compose
+│           ├── login/            # Écran de connexion
+│           ├── verify/           # Identification de l'enfant
+│           ├── dashboard/        # Tableau de bord
+│           ├── notes/            # Notes et bulletin PDF
+│           ├── paiements/        # Paiements et reçu PDF
+│           ├── absences/         # Absences
+│           └── annonces/         # Annonces et notifications
 └── README.md
 ```
 
@@ -148,8 +169,8 @@ php artisan storage:link
 php artisan serve
 ```
 
-L'API est accessible sur `http://127.0.0.1:8000/api`.
-L'application web est accessible sur `http://127.0.0.1:8000`.
+- API accessible sur `http://127.0.0.1:8000/api`
+- Application web accessible sur `http://127.0.0.1:8000`
 
 ---
 
@@ -191,24 +212,25 @@ adb reverse tcp:8000 tcp:8000
 | Enseignant | `enseignant@example.com` |
 
 ### Application mobile (parent)
-| Champ | Valeur |
-|---|---|
-| Email | `aziz@gmail.com` |
-| Mot de passe | `password123` |
-| Nom de l'enfant | `toe` |
-| Classe | `CP2` |
+| Champ | Parent 1 | Parent 2 |
+|---|---|---|
+| Email | `aziz@gmail.com` | `biba@gmail.com` |
+| Mot de passe | `password123` | `password123` |
+| Nom de l'enfant | `toe` | `SIE` |
+| Classe | `CP2` | `CP2` |
 
 ---
 
 ## Liaison entre les deux applications
 
-Les deux applications partagent la **même base de données MySQL** (`gestion_scolaire`) via une API REST ajoutée au projet web Laravel existant.
+Les deux applications partagent la **même base de données MySQL** (`gestion_scolaire`) via une API REST intégrée au projet web Laravel.
 
 | Action côté app web | Résultat côté app mobile |
 |---|---|
-| Enseignant saisit les notes | Parent voit les nouvelles notes et moyennes |
-| Gestionnaire enregistre un paiement | Parent voit le solde mis à jour |
+| Enseignant saisit les notes | Parent voit les notes et moyennes mises à jour |
+| Enseignant signale une absence | Parent reçoit une notification + voit l'absence dans l'onglet Absences |
 | Gestionnaire publie une annonce | Parent reçoit une notification dans l'onglet Annonces |
+| Gestionnaire enregistre un paiement | Parent voit le solde mis à jour |
 | Parent effectue un paiement depuis l'app mobile | Gestionnaire voit le versement dans l'app web |
 
 Aucune synchronisation manuelle n'est nécessaire — les deux interfaces lisent et écrivent dans la même base en temps réel.
