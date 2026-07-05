@@ -10,7 +10,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 object ApiConfig {
 
     private const val BASE_URL = "http://127.0.0.1:8000/api/"
-
     private val jsonHeaderInterceptor = Interceptor { chain ->
         val request = chain.request().newBuilder()
             .addHeader("Accept", "application/json")

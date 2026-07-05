@@ -2,23 +2,23 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Note extends Model
 {
-    use HasFactory;
+    protected $fillable = [
+        'eleve_id', 'classe_id', 'matiere', 'trimestre', 'note'
+    ];
 
-    protected $fillable = ['eleve_id', 'matiere_id', 'type', 'valeur', 'coefficient', 'trimestre', 'date'];
-
-    public function eleve(): BelongsTo
+    // Une note appartient à un élève
+    public function eleve()
     {
         return $this->belongsTo(Eleve::class);
     }
 
-    public function matiere(): BelongsTo
+    // Une note appartient à une classe
+    public function classe()
     {
-        return $this->belongsTo(Matiere::class);
+        return $this->belongsTo(Classe::class);
     }
 }

@@ -1,26 +1,27 @@
 <?php
 
-use App\Http\Controllers\AbsenceController;
-use App\Http\Controllers\AnnonceController;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\BulletinController;
-use App\Http\Controllers\EleveController;
-use App\Http\Controllers\NoteController;
-use App\Http\Controllers\PaiementController;
+use App\Http\Controllers\Api\AuthApiController;
+use App\Http\Controllers\Api\EleveApiController;
+use App\Http\Controllers\Api\NoteApiController;
+use App\Http\Controllers\Api\PaiementApiController;
+use App\Http\Controllers\Api\AnnonceApiController;
+use App\Http\Controllers\Api\NotificationApiController;
 use Illuminate\Support\Facades\Route;
-
-Route::post('/login', [AuthController::class, 'login']);
+use App\Http\Controllers\Api\AbsenceApiController;
+Route::post('/login', [AuthApiController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::put('/password', [AuthController::class, 'updatePassword']);
-    Route::get('/eleves', [EleveController::class, 'index']);
-    Route::post('/eleves/verify', [EleveController::class, 'verify']);
-    Route::get('/eleves/{eleve}', [EleveController::class, 'show']);
-    Route::get('/eleves/{eleve}/notes', [NoteController::class, 'index']);
-    Route::get('/eleves/{eleve}/paiements', [PaiementController::class, 'index']);
-    Route::post('/eleves/{eleve}/paiements', [PaiementController::class, 'store']);
-    Route::get('/eleves/{eleve}/absences', [AbsenceController::class, 'index']);
-    Route::get('/eleves/{eleve}/bulletin', [BulletinController::class, 'show']);
-    Route::get('/annonces', [AnnonceController::class, 'index']);
+    Route::post('/logout', [AuthApiController::class, 'logout']);
+    Route::put('/password', [AuthApiController::class, 'updatePassword']);
+    Route::get('/eleves', [EleveApiController::class, 'index']);
+    Route::post('/eleves/verify', [EleveApiController::class, 'verify']);
+    Route::get('/eleves/{eleve}', [EleveApiController::class, 'show']);
+    Route::get('/eleves/{eleve}/notes', [NoteApiController::class, 'index']);
+    Route::get('/eleves/{eleve}/paiements', [PaiementApiController::class, 'index']);
+    Route::post('/eleves/{eleve}/paiements', [PaiementApiController::class, 'store']);
+    Route::get('/eleves/{eleve}/bulletin', [NoteApiController::class, 'bulletin']);
+    Route::get('/annonces', [AnnonceApiController::class, 'index']);
+    Route::get('/notifications', [NotificationApiController::class, 'index']);
+    Route::put('/notifications/{id}/lu', [NotificationApiController::class, 'marquerLu']);
+    Route::get('/eleves/{eleve}/absences', [AbsenceApiController::class, 'index']);
 });

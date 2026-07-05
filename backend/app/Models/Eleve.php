@@ -2,34 +2,48 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Eleve extends Model
 {
-    use HasFactory;
+    protected $fillable = [
+        'nom', 'prenom', 'date_naissance', 'sexe',
+        'photo', 'nom_parent', 'telephone_parent',
+        'classe_id', 'parent_id'
+    ];
 
-    protected $fillable = ['nom', 'prenom', 'photo_url', 'classe', 'montant_total_du'];
-
-    public function parents(): BelongsToMany
+    public function classe()
     {
-        return $this->belongsToMany(User::class, 'parent_eleve');
+        return $this->belongsTo(Classe::class);
     }
 
-    public function notes(): HasMany
-    {
-        return $this->hasMany(Note::class);
-    }
-
-    public function paiements(): HasMany
+    public function paiements()
     {
         return $this->hasMany(Paiement::class);
     }
 
-    public function absences(): HasMany
+    public function notes()
     {
-        return $this->hasMany(Absence::class);
+        return $this->hasMany(Note::class);
     }
+
+    public function parent()
+    {
+        return $this->belongsTo(User::class, 'parent_id');
+    }
+
+    public function totalPaye()
+    {
+        return (int) $this->paiements()->sum('montant');
+    }
+
+    public function resteAPayer()
+    {
+        $frais = (int) ($this->classe->frais ?? 0);
+        return max(0, $frais - $this->totalPaye());
+    }
+    public function absences()
+{
+    return $this->hasMany(\App\Models\Absence::class);
+}
 }

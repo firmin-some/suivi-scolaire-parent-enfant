@@ -1,59 +1,280 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🏫 EcolePrime — Système de Gestion Scolaire (Cycle Primaire)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+> Projet réalisé dans le cadre du cours de **Programmation Web et Framework**  
+> Année académique 2025–2026
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 📋 Sujet
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Conception d'une application web pour la gestion d'un établissement
+d'enseignement primaire (du CP1 au CM2). L'application permet un suivi
+rigoureux tant sur le plan **financier** que **pédagogique**, avec un
+espace dédié pour les parents d'élèves.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## 👥 Membres du groupe
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
 
-## Laravel Sponsors
+| Nom & Prénom | Rôle |
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+|--------------|------|
 
-### Premium Partners
+| SOME Firmin  | Membre développeur |
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+| MOYENGA Aziz | Membre développeur |
 
-## Contributing
+``
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## ⚙️ Installation
 
-## Code of Conduct
+### Prérequis
+- PHP >= 8.2
+- Composer
+- MySQL (XAMPP)
+- Node.js et npm
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Étapes
 
-## Security Vulnerabilities
+**1. Cloner le projet**
+```bash
+git clone https://github.com/firmin-some/gestion-scolaire.git
+cd gestion-scolaire
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+**2. Installer les dépendances PHP**
+```bash
+composer install
+```
 
-## License
+**3. Installer les dépendances JavaScript**
+```bash
+npm install && npm run build
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+**4. Configurer l'environnement**
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+**5. Configurer la base de données dans `.env`**
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=gestion_scolaire
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+**6. Créer les tables**
+```bash
+php artisan migrate
+```
+
+**7. Lien de stockage**
+```bash
+php artisan storage:link
+```
+
+**8. Créer les comptes par défaut**
+```bash
+php artisan tinker
+```
+```php
+// Compte Gestionnaire
+\App\Models\User::create([
+    'name' => 'Admin Gestionnaire',
+    'email' => 'admin@ecoleprime.bf',
+    'password' => bcrypt('Admin@2025'),
+    'role' => 'gestionnaire'
+]);
+
+// Compte Enseignant
+\App\Models\User::create([
+    'name' => 'M. Enseignant',
+    'email' => 'enseignant@ecoleprime.bf',
+    'password' => bcrypt('Enseignant@2025'),
+    'role' => 'enseignant'
+]);
+```
+
+**9. Lancer l'application**
+```bash
+php artisan serve
+```
+
+Accéder à : **http://127.0.0.1:8000**
+
+---
+
+## 🔐 Comptes de test (après `php artisan migrate:fresh --seed`)
+
+| Rôle | Email | Mot de passe |
+|---|---|---|
+| Gestionnaire | gestionnaire@example.com | password123 |
+| Enseignant | enseignant@example.com | password123 |
+| Parent | parent@example.com | password123 |
+
+**Note** : Après le seeder initial, le **gestionnaire peut ajouter directement les enseignants** via le tableau de bord avec un code d'accès. Voir la section ci-dessous pour plus de détails.
+
+---
+
+## 👨‍🏫 Gestion des Enseignants (flux recommandé)
+
+Au lieu d'ajouter les enseignants via le seeder, le gestionnaire crée les comptes directement :
+
+1. Se connecter au tableau de bord : **gestionnaire@example.com** / **password123**
+2. Aller à la section **Gestion des Enseignants** → **Ajouter un enseignant**
+3. Remplir le formulaire :
+   - Nom, prénom, sexe
+   - Email (doit être unique)
+   - Spécialité/matière enseignée
+   - **Code d'accès** : Un code unique que l'enseignant utilisera pour se connecter
+   - Téléphone (optionnel)
+   - Date de naissance (optionnel)
+4. Soumettre le formulaire
+5. Un compte `User` est créé automatiquement avec :
+   - Email : celui fourni dans le formulaire
+   - Mot de passe : le code d'accès (haché automatiquement)
+   - Rôle : **Enseignant**
+
+6. **Communiquer au nouvel enseignant** :
+   - Email : l'adresse fournie
+   - Mot de passe initial : le code d'accès
+
+L'enseignant peut alors se connecter et modifier son mot de passe via son profil.
+
+---
+
+## ✨ Fonctionnalités
+
+### 🔐 Authentification & Sécurité
+- Connexion sécurisée avec 3 rôles : Gestionnaire, Enseignant, Parent
+- Middleware de protection par rôle
+- Protection CSRF sur tous les formulaires
+- Inscription publique réservée aux parents
+- Mots de passe hashés (Bcrypt)
+
+### 📊 Tableau de bord (Gestionnaire)
+- Statistiques en temps réel
+- Frais collectés vs attendus par classe
+- Taux de collecte avec barres de progression
+- Liste des élèves impayés
+
+### 👦 Gestion des Élèves (Gestionnaire)
+- Inscription avec photo
+- Recherche et filtrage par classe
+- Fiche détaillée par élève
+- Statut de paiement visible
+
+### 🏛️ Gestion des Classes (Gestionnaire)
+- Configuration CP1 → CM2
+- Frais de scolarité par classe
+- Enseignant titulaire
+
+### 💰 Gestion des Paiements (Gestionnaire)
+- Enregistrement des versements
+- Calcul automatique du reste à payer
+- Génération de reçu PDF téléchargeable
+- Historique complet des paiements
+
+### 📝 Notes & Moyennes (Gestionnaire + Enseignant)
+- Saisie par matière et trimestre (T1, T2, T3)
+- 6 matières : Français, Maths, Sciences, Histoire-Géo, Anglais, EPS
+- Calcul automatique des moyennes avec mentions
+- Export bulletin PDF
+
+### 🏆 Classement (Gestionnaire + Enseignant)
+- Classement par classe et trimestre
+- Médailles 🥇🥈🥉
+- Barres de progression
+
+### 👨‍🏫 Gestion des Enseignants (Gestionnaire)
+- Inscription des enseignants
+- Spécialité / matière enseignée
+- CRUD complet
+
+### 👨‍👩‍👦 Espace Parent
+- Inscription libre via /register
+- Inscription de ses enfants directement
+- Consultation des notes par trimestre
+- Consultation des paiements et frais
+- Accès limité (pas aux données administratives)
+
+---
+
+## 🛠️ Technologies
+
+| Technologie | Version | Usage |
+|---|---|---|
+| Laravel | 12.x | Framework PHP backend |
+| PHP | 8.2 | Langage serveur |
+| MySQL | 10.4 | Base de données |
+| Bootstrap | 5.3 | Interface utilisateur |
+| Bootstrap Icons | 1.11 | Icônes |
+| DomPDF | 3.x | Génération PDF |
+| Blade | — | Moteur de templates |
+
+---
+
+## 🔒 Sécurité
+
+| Mesure | Description |
+|---|---|
+| Authentification | Laravel Breeze |
+| Protection CSRF | Token sur tous les formulaires |
+| Middleware rôles | Accès restreint par rôle |
+| Validation | Toutes les entrées validées |
+| Protection XSS | Échappement automatique Blade |
+| Injection SQL | Eloquent ORM (requêtes préparées) |
+| Hash passwords | Bcrypt |
+
+---
+
+## 📁 Structure
+
+```
+gestion-scolaire/
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   │   ├── DashboardController.php
+│   │   │   ├── ClasseController.php
+│   │   │   ├── EleveController.php
+│   │   │   ├── PaiementController.php
+│   │   │   ├── NoteController.php
+│   │   │   ├── EnseignantController.php
+│   │   │   └── ParentController.php
+│   │   └── Middleware/
+│   │       └── CheckRole.php
+│   └── Models/
+│       ├── User.php
+│       ├── Classe.php
+│       ├── Eleve.php
+│       ├── Paiement.php
+│       ├── Note.php
+│       └── Enseignant.php
+├── database/migrations/
+├── resources/views/
+│   ├── layouts/
+│   ├── dashboard.blade.php
+│   ├── classes/
+│   ├── eleves/
+│   ├── paiements/
+│   ├── notes/
+│   ├── enseignants/
+│   ├── parent/
+│   └── pdf/
+└── routes/web.php
+```
+
+---
+                           
+## 📄 Licence
+
+Projet académique — Université Joseph KI-ZERBO licence3 2025–2026

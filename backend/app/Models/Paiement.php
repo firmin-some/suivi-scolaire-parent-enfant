@@ -2,17 +2,19 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Paiement extends Model
 {
-    use HasFactory;
+    protected $fillable = [
+        'eleve_id', 'montant', 'date_paiement', 'mode_paiement', 'statut', 'recu_path'
+    ];
 
-    protected $fillable = ['eleve_id', 'montant', 'date', 'mode_paiement', 'recu_path'];
+    protected $casts = [
+        'date_paiement' => 'date',
+    ];
 
-    public function eleve(): BelongsTo
+    public function eleve()
     {
         return $this->belongsTo(Eleve::class);
     }

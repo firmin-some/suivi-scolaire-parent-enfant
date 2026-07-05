@@ -62,4 +62,14 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Body request: VerifyChildRequest
     ): EleveDto
+    @GET("notifications")
+    suspend fun getNotifications(
+        @Header("Authorization") token: String
+    ): List<NotificationDto>
+
+    @PUT("notifications/{id}/lu")
+    suspend fun marquerNotificationLue(
+        @Header("Authorization") token: String,
+        @Path("id") id: Int
+    ): ResponseBody
 }

@@ -3,66 +3,100 @@
 namespace App\Http\Controllers;
 
 use App\Models\Eleve;
+use App\Models\Classe;
 use Illuminate\Http\Request;
 
 class EleveController extends Controller
 {
     public function index(Request $request)
     {
-        $eleves = $request->user()->eleves()->get(['eleves.id', 'nom', 'prenom', 'photo_url', 'classe']);
-        return response()->json($eleves);
-    }
+        $query = Eleve::with('classe', 'paiements');
 
-    public function show(Request $request, Eleve $eleve)
-    {
-        if (! $request->user()->eleves()->where('eleves.id', $eleve->id)->exists()) {
-            return response()->json(['message' => 'Accès non autorisé'], 403);
+        if ($request->filled('search')) {
+            $query->where('nom', 'like', '%'.$request->search.'%')
+                  ->orWhere('prenom', 'like', '%'.$request->search.'%');
+        }
+        if ($request->filled('classe_id')) {
+            $query->where('classe_id', $request->classe_id);
         }
 
-        $moyenneGenerale = round($eleve->notes()->avg('valeur') ?? 0, 1);
-        $effectifClasse = Eleve::where('classe', $eleve->classe)->count();
-        $rangClasse = 1;
-
-        $dernieresNotes = $eleve->notes()
-            ->with('matiere')
-            ->latest('date')
-            ->take(5)
-            ->get()
-            ->map(fn ($note) => [
-                'matiere' => $note->matiere->nom,
-                'valeur' => (float) $note->valeur,
-                'date' => $note->date,
-            ]);
-
-        return response()->json([
-            'id' => $eleve->id,
-            'nom' => $eleve->nom,
-            'prenom' => $eleve->prenom,
-            'photo_url' => $eleve->photo_url,
-            'classe' => $eleve->classe,
-            'moyenne_generale' => $moyenneGenerale,
-            'rang_classe' => $rangClasse,
-            'effectif_classe' => $effectifClasse,
-            'dernieres_notes' => $dernieresNotes,
-        ]);
+        $eleves  = $query->get();
+        $classes = Classe::all();
+        return view('eleves.index', compact('eleves', 'classes'));
     }
 
-    public function verify(Request $request)
+    public function create()
     {
-        $data = $request->validate([
-            'nom' => ['required', 'string'],
-            'classe' => ['required', 'string'],
+        $classes = Classe::all();
+        return view('eleves.create', compact('classes'));
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'nom'               => 'required|string|max:100',
+            'prenom'            => 'required|string|max:100',
+            'sexe'              => 'required|in:M,F',
+            'classe_id'         => 'required|exists:classes,id',
+            'nom_parent'        => 'required|string|max:100',
+            'date_naissance'    => 'nullable|date',
+            'telephone_parent'  => 'nullable|string|max:20',
+            'photo'             => 'nullable|image|max:2048',
         ]);
 
-        $eleve = $request->user()->eleves()
-            ->whereRaw('LOWER(nom) = ?', [mb_strtolower($data['nom'])])
-            ->whereRaw('LOWER(classe) = ?', [mb_strtolower($data['classe'])])
-            ->first(['eleves.id', 'nom', 'prenom', 'photo_url', 'classe']);
+        $data = $request->except('photo');
 
-        if (! $eleve) {
-            return response()->json(['message' => "Aucun enfant ne correspond à ces informations."], 404);
+        if ($request->hasFile('photo')) {
+            $data['photo'] = $request->file('photo')
+                                     ->store('photos', 'public');
         }
 
-        return response()->json($eleve);
+        Eleve::create($data);
+        return redirect()->route('eleves.index')
+                         ->with('success', 'Élève inscrit avec succès !');
+    }
+
+    public function show(Eleve $eleve)
+    {
+        $eleve->load('classe', 'paiements', 'notes');
+        return view('eleves.show', compact('eleve'));
+    }
+
+    public function edit(Eleve $eleve)
+    {
+        $classes = Classe::all();
+        return view('eleves.edit', compact('eleve', 'classes'));
+    }
+
+    public function update(Request $request, Eleve $eleve)
+    {
+        $request->validate([
+            'nom'              => 'required|string|max:100',
+            'prenom'           => 'required|string|max:100',
+            'sexe'             => 'required|in:M,F',
+            'classe_id'        => 'required|exists:classes,id',
+            'nom_parent'       => 'required|string|max:100',
+            'date_naissance'   => 'nullable|date',
+            'telephone_parent' => 'nullable|string|max:20',
+            'photo'            => 'nullable|image|max:2048',
+        ]);
+
+        $data = $request->except('photo');
+
+        if ($request->hasFile('photo')) {
+            $data['photo'] = $request->file('photo')
+                                     ->store('photos', 'public');
+        }
+
+        $eleve->update($data);
+        return redirect()->route('eleves.index')
+                         ->with('success', 'Élève modifié avec succès !');
+    }
+
+    public function destroy(Eleve $eleve)
+    {
+        $eleve->delete();
+        return redirect()->route('eleves.index')
+                         ->with('success', 'Élève supprimé.');
     }
 }

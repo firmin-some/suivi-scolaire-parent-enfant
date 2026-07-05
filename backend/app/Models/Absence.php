@@ -2,19 +2,25 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Absence extends Model
 {
-    use HasFactory;
+    protected $table = 'absences';
 
-    protected $fillable = ['eleve_id', 'date', 'motif', 'justifiee'];
+    protected $fillable = [
+        'eleve_id',
+        'date',
+        'motif',
+        'justifiee'
+    ];
 
-    protected $casts = ['justifiee' => 'boolean'];
+    protected $casts = [
+        'date' => 'date',
+        'justifiee' => 'boolean'
+    ];
 
-    public function eleve(): BelongsTo
+    public function eleve()
     {
         return $this->belongsTo(Eleve::class);
     }
