@@ -17,10 +17,12 @@ private val LightColorScheme = lightColorScheme(
     onPrimary = Color.White,
     secondary = SchoolGold,
     onSecondary = Color.White,
-    background = SchoolBackground,
-    surface = SchoolSurface,
-    onBackground = SchoolBlue,
-    onSurface = SchoolBlue
+    background = Color(0xFF0D2137),
+    surface = Color(0xFF1B3A52),
+    onBackground = Color.White,
+    onSurface = Color.White,
+    surfaceVariant = Color(0xFF1B3A52),
+    onSurfaceVariant = Color.White
 )
 
 private val DarkColorScheme = darkColorScheme(

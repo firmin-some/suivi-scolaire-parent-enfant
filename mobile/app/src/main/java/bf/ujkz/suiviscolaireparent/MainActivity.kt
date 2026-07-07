@@ -35,15 +35,16 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import bf.ujkz.suiviscolaireparent.repository.AuthRepository
+import bf.ujkz.suiviscolaireparent.ui.annonces.AnnoncesScreen
+import bf.ujkz.suiviscolaireparent.ui.absences.AbsencesScreen
 import bf.ujkz.suiviscolaireparent.ui.dashboard.DashboardScreen
 import bf.ujkz.suiviscolaireparent.ui.login.LoginScreen
+import bf.ujkz.suiviscolaireparent.ui.notes.NotesScreen
+import bf.ujkz.suiviscolaireparent.ui.paiements.PaiementsScreen
+import bf.ujkz.suiviscolaireparent.ui.splash.SplashScreen
 import bf.ujkz.suiviscolaireparent.ui.theme.SuiviScolaireParentTheme
 import bf.ujkz.suiviscolaireparent.ui.verify.VerifyChildScreen
 import kotlinx.coroutines.launch
-import bf.ujkz.suiviscolaireparent.ui.notes.NotesScreen
-import bf.ujkz.suiviscolaireparent.ui.paiements.PaiementsScreen
-import bf.ujkz.suiviscolaireparent.ui.absences.AbsencesScreen
-import bf.ujkz.suiviscolaireparent.ui.annonces.AnnoncesScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,14 +78,24 @@ fun MainApp() {
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val showAppBars = currentRoute != null && currentRoute != "login" && currentRoute != "verify"
+
+    // La barre du haut et du bas sont cachées sur splash, login et verify
+    val showAppBars = currentRoute != null
+            && currentRoute != "splash"
+            && currentRoute != "login"
+            && currentRoute != "verify"
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             if (showAppBars) {
                 TopAppBar(
-                    title = { Text(bottomNavItems.find { it.route == currentRoute }?.label ?: "Suivi scolaire") },
+                    title = {
+                        Text(
+                            bottomNavItems.find { it.route == currentRoute }?.label
+                                ?: "Suivi scolaire"
+                        )
+                    },
                     actions = {
                         IconButton(onClick = {
                             coroutineScope.launch {
@@ -125,9 +136,16 @@ fun MainApp() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = "login",
+            startDestination = "splash",
             modifier = Modifier.padding(innerPadding)
         ) {
+            composable("splash") {
+                SplashScreen(onCommencer = {
+                    navController.navigate("login") {
+                        popUpTo("splash") { inclusive = true }
+                    }
+                })
+            }
             composable("login") {
                 LoginScreen(onLoginSuccess = {
                     navController.navigate("verify") {

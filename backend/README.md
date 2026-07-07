@@ -1,68 +1,158 @@
-# 🏫 EcolePrime — Système de Gestion Scolaire (Cycle Primaire)
+# Suivi Scolaire Parent-Enfant
 
-> Projet réalisé dans le cadre du cours de **Programmation Web et Framework**  
-> Année académique 2025–2026
+Application mobile permettant aux parents d'élèves de suivre en temps réel la scolarité de leurs enfants dans un établissement primaire (du CP1 au CM2) : notes, paiements, absences, annonces et notifications de l'école.
 
----
+Ce projet est **directement connecté** à l'application web de gestion scolaire **EcolePrime** — les deux partagent la même base de données MySQL. Toute action effectuée par le gestionnaire ou l'enseignant sur l'app web (saisie de notes, signalement d'absences, publication d'annonces) est immédiatement visible par le parent depuis l'app mobile.
 
-## 📋 Sujet
-
-Conception d'une application web pour la gestion d'un établissement
-d'enseignement primaire (du CP1 au CM2). L'application permet un suivi
-rigoureux tant sur le plan **financier** que **pédagogique**, avec un
-espace dédié pour les parents d'élèves.
+Projet réalisé dans le cadre du cours de **Développement Mobile**, UJKZ — Cahier des charges du 16 juin 2026.
 
 ---
 
-## 👥 Membres du groupe
+## Membres du groupe
 
+| Nom | Rôle |
+|---|---|
+| **SOME Firmin** | Développeur |
+| **MOYENGA Aziz** | Développeur |
 
-
-| Nom & Prénom | Rôle |
-
-|--------------|------|
-
-| SOME Firmin  | Membre développeur |
-
-| MOYENGA Aziz | Membre développeur |
-
-``
 ---
 
-## ⚙️ Installation
+## Sommaire
+
+- [Fonctionnalités](#fonctionnalités)
+- [Architecture technique](#architecture-technique)
+- [Structure du dépôt](#structure-du-dépôt)
+- [Installation — Backend (API Laravel)](#installation--backend-api-laravel)
+- [Installation — Application mobile (Android)](#installation--application-mobile-android)
+- [Comptes de test](#comptes-de-test)
+- [Liaison entre les deux applications](#liaison-entre-les-deux-applications)
+
+---
+
+## Fonctionnalités
+
+### Authentification parent
+- Connexion sécurisée par email et mot de passe (token Bearer via Laravel Sanctum)
+- Identification de l'enfant suivi après connexion (nom + classe)
+- Déconnexion
+- Modification du mot de passe
+
+### Tableau de bord
+- Message de bienvenue personnalisé (Papa/Maman)
+- Informations de l'élève (nom, prénom, classe)
+- Moyenne générale et rang dans la classe
+- Résumé des dernières notes obtenues
+- Accès rapide à toutes les rubriques
+
+### Consultation des notes
+- Notes par matière (Français, Mathématiques, Sciences, Histoire-Géo, Anglais, EPS)
+- Regroupement par trimestre (T1, T2, T3)
+- Calcul et affichage des moyennes trimestrielles
+- Téléchargement du bulletin scolaire au format PDF (en-tête établissement, mention, infos élève et parent)
+
+### Suivi des paiements
+- Montant total dû (basé sur les frais de la classe), montant payé, montant restant
+- Historique des versements effectués
+- Simulation de paiement (formulaire : montant + mode de paiement)
+- Génération et consultation du reçu de paiement au format PDF (en-tête établissement, infos élève et parent)
+
+### Suivi des absences
+- Liste des absences de l'élève
+- Motif de l'absence (si renseigné) et statut justifiée / non justifiée
+- Notification automatique envoyée au parent dès qu'une absence est signalée par l'enseignant
+
+### Annonces et notifications
+- Réception des annonces publiées par le gestionnaire depuis l'app web
+- Notifications personnalisées par élève (absences, réunions, examens, paiements, etc.)
+- Badge "Nouveau" sur les notifications non lues
+- Marquage comme lu au clic
+
+### Côté application web EcolePrime (gestionnaire / enseignant)
+- Saisie des notes par matière et par trimestre
+- Signalement des absences avec notification automatique au parent
+- Publication d'annonces avec envoi automatique de notifications à tous les élèves
+- Les paiements effectués depuis l'app mobile sont immédiatement visibles dans l'app web
+- Génération du bulletin scolaire PDF depuis l'interface web
+
+---
+
+## Architecture technique
+
+| Couche | Technologie |
+|---|---|
+| Backend / API REST | Laravel 12 (PHP 8.2+), MySQL |
+| Authentification API | Laravel Sanctum (token Bearer) |
+| Génération PDF | barryvdh/laravel-dompdf |
+| Application mobile | Android natif — Kotlin, Jetpack Compose |
+| Architecture mobile | MVVM (UI → ViewModel → Repository → Retrofit) |
+| Appels réseau | Retrofit2 + OkHttp + Gson |
+| Asynchrone | Coroutines Kotlin + StateFlow |
+| Navigation | Navigation Compose |
+| Stockage local | DataStore Preferences (token, élève sélectionné, civilité) |
+
+---
+
+## Structure du dépôt
+
+```
+suivi-scolaire-parent-enfant/
+├── backend/        # Projet web EcolePrime avec API REST intégrée
+│   ├── app/
+│   │   ├── Http/Controllers/
+│   │   │   ├── Api/              # Contrôleurs API mobile
+│   │   │   │   ├── AuthApiController.php
+│   │   │   │   ├── EleveApiController.php
+│   │   │   │   ├── NoteApiController.php
+│   │   │   │   ├── PaiementApiController.php
+│   │   │   │   ├── AbsenceApiController.php
+│   │   │   │   ├── AnnonceApiController.php
+│   │   │   │   └── NotificationApiController.php
+│   │   │   ├── AbsenceController.php   # Gestion absences (web)
+│   │   │   └── AnnonceController.php   # Gestion annonces (web)
+│   │   └── Models/
+│   ├── resources/views/
+│   │   ├── absences/             # Vue web signalement absences
+│   │   ├── annonces/             # Vue web gestion annonces
+│   │   └── pdf/                  # Templates PDF (reçu, bulletin)
+│   └── routes/
+│       ├── api.php               # 8 routes API consommées par l'app mobile
+│       └── web.php               # Routes web (EcolePrime)
+├── mobile/         # Application Android (Kotlin / Jetpack Compose)
+│   └── app/src/main/java/
+│       ├── network/              # Modèles JSON et service Retrofit
+│       ├── repository/           # Logique métier et appels API
+│       ├── viewmodel/            # ViewModels (MVVM)
+│       └── ui/                   # Écrans Compose
+│           ├── login/            # Écran de connexion
+│           ├── verify/           # Identification de l'enfant
+│           ├── dashboard/        # Tableau de bord
+│           ├── notes/            # Notes et bulletin PDF
+│           ├── paiements/        # Paiements et reçu PDF
+│           ├── absences/         # Absences
+│           └── annonces/         # Annonces et notifications
+└── README.md
+```
+
+---
+
+## Installation — Backend (API Laravel)
 
 ### Prérequis
-- PHP >= 8.2
+- PHP 8.2 ou supérieur
 - Composer
-- MySQL (XAMPP)
-- Node.js et npm
+- MySQL (XAMPP recommandé sur Windows)
 
 ### Étapes
 
-**1. Cloner le projet**
 ```bash
-git clone https://github.com/firmin-some/gestion-scolaire.git
-cd gestion-scolaire
-```
-
-**2. Installer les dépendances PHP**
-```bash
+cd backend
 composer install
-```
-
-**3. Installer les dépendances JavaScript**
-```bash
-npm install && npm run build
-```
-
-**4. Configurer l'environnement**
-```bash
 cp .env.example .env
 php artisan key:generate
 ```
 
-**5. Configurer la base de données dans `.env`**
-```env
+Configurer `.env` avec la base de données :
+```
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
@@ -71,210 +161,76 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
-**6. Créer les tables**
+Créer la base `gestion_scolaire` dans phpMyAdmin, puis :
+
 ```bash
 php artisan migrate
-```
-
-**7. Lien de stockage**
-```bash
 php artisan storage:link
-```
-
-**8. Créer les comptes par défaut**
-```bash
-php artisan tinker
-```
-```php
-// Compte Gestionnaire
-\App\Models\User::create([
-    'name' => 'Admin Gestionnaire',
-    'email' => 'admin@ecoleprime.bf',
-    'password' => bcrypt('Admin@2025'),
-    'role' => 'gestionnaire'
-]);
-
-// Compte Enseignant
-\App\Models\User::create([
-    'name' => 'M. Enseignant',
-    'email' => 'enseignant@ecoleprime.bf',
-    'password' => bcrypt('Enseignant@2025'),
-    'role' => 'enseignant'
-]);
-```
-
-**9. Lancer l'application**
-```bash
 php artisan serve
 ```
 
-Accéder à : **http://127.0.0.1:8000**
+- API accessible sur `http://127.0.0.1:8000/api`
+- Application web accessible sur `http://127.0.0.1:8000`
 
 ---
 
-## 🔐 Comptes de test (après `php artisan migrate:fresh --seed`)
+## Installation — Application mobile (Android)
 
-| Rôle | Email | Mot de passe |
-|---|---|---|
-| Gestionnaire | gestionnaire@example.com | password123 |
-| Enseignant | enseignant@example.com | password123 |
-| Parent | parent@example.com | password123 |
+### Prérequis
+- Android Studio (dernière version stable)
+- SDK Android (API 24 minimum, compileSdk 37)
+- Le backend Laravel doit être lancé (`php artisan serve`)
 
-**Note** : Après le seeder initial, le **gestionnaire peut ajouter directement les enseignants** via le tableau de bord avec un code d'accès. Voir la section ci-dessous pour plus de détails.
+### Étapes
 
----
+1. Ouvrir le dossier `mobile/` dans Android Studio (**File → Open**).
+2. Laisser Gradle synchroniser le projet.
+3. Configurer l'URL de l'API dans `app/src/main/java/.../network/ApiConfig.kt` :
 
-## 👨‍🏫 Gestion des Enseignants (flux recommandé)
-
-Au lieu d'ajouter les enseignants via le seeder, le gestionnaire crée les comptes directement :
-
-1. Se connecter au tableau de bord : **gestionnaire@example.com** / **password123**
-2. Aller à la section **Gestion des Enseignants** → **Ajouter un enseignant**
-3. Remplir le formulaire :
-   - Nom, prénom, sexe
-   - Email (doit être unique)
-   - Spécialité/matière enseignée
-   - **Code d'accès** : Un code unique que l'enseignant utilisera pour se connecter
-   - Téléphone (optionnel)
-   - Date de naissance (optionnel)
-4. Soumettre le formulaire
-5. Un compte `User` est créé automatiquement avec :
-   - Email : celui fourni dans le formulaire
-   - Mot de passe : le code d'accès (haché automatiquement)
-   - Rôle : **Enseignant**
-
-6. **Communiquer au nouvel enseignant** :
-   - Email : l'adresse fournie
-   - Mot de passe initial : le code d'accès
-
-L'enseignant peut alors se connecter et modifier son mot de passe via son profil.
-
----
-
-## ✨ Fonctionnalités
-
-### 🔐 Authentification & Sécurité
-- Connexion sécurisée avec 3 rôles : Gestionnaire, Enseignant, Parent
-- Middleware de protection par rôle
-- Protection CSRF sur tous les formulaires
-- Inscription publique réservée aux parents
-- Mots de passe hashés (Bcrypt)
-
-### 📊 Tableau de bord (Gestionnaire)
-- Statistiques en temps réel
-- Frais collectés vs attendus par classe
-- Taux de collecte avec barres de progression
-- Liste des élèves impayés
-
-### 👦 Gestion des Élèves (Gestionnaire)
-- Inscription avec photo
-- Recherche et filtrage par classe
-- Fiche détaillée par élève
-- Statut de paiement visible
-
-### 🏛️ Gestion des Classes (Gestionnaire)
-- Configuration CP1 → CM2
-- Frais de scolarité par classe
-- Enseignant titulaire
-
-### 💰 Gestion des Paiements (Gestionnaire)
-- Enregistrement des versements
-- Calcul automatique du reste à payer
-- Génération de reçu PDF téléchargeable
-- Historique complet des paiements
-
-### 📝 Notes & Moyennes (Gestionnaire + Enseignant)
-- Saisie par matière et trimestre (T1, T2, T3)
-- 6 matières : Français, Maths, Sciences, Histoire-Géo, Anglais, EPS
-- Calcul automatique des moyennes avec mentions
-- Export bulletin PDF
-
-### 🏆 Classement (Gestionnaire + Enseignant)
-- Classement par classe et trimestre
-- Médailles 🥇🥈🥉
-- Barres de progression
-
-### 👨‍🏫 Gestion des Enseignants (Gestionnaire)
-- Inscription des enseignants
-- Spécialité / matière enseignée
-- CRUD complet
-
-### 👨‍👩‍👦 Espace Parent
-- Inscription libre via /register
-- Inscription de ses enfants directement
-- Consultation des notes par trimestre
-- Consultation des paiements et frais
-- Accès limité (pas aux données administratives)
-
----
-
-## 🛠️ Technologies
-
-| Technologie | Version | Usage |
-|---|---|---|
-| Laravel | 12.x | Framework PHP backend |
-| PHP | 8.2 | Langage serveur |
-| MySQL | 10.4 | Base de données |
-| Bootstrap | 5.3 | Interface utilisateur |
-| Bootstrap Icons | 1.11 | Icônes |
-| DomPDF | 3.x | Génération PDF |
-| Blade | — | Moteur de templates |
-
----
-
-## 🔒 Sécurité
-
-| Mesure | Description |
+| Environnement | URL à utiliser |
 |---|---|
-| Authentification | Laravel Breeze |
-| Protection CSRF | Token sur tous les formulaires |
-| Middleware rôles | Accès restreint par rôle |
-| Validation | Toutes les entrées validées |
-| Protection XSS | Échappement automatique Blade |
-| Injection SQL | Eloquent ORM (requêtes préparées) |
-| Hash passwords | Bcrypt |
+| Émulateur Android | `http://10.0.2.2:8000/api/` |
+| Téléphone physique via USB | `http://127.0.0.1:8000/api/` + tunnel `adb reverse tcp:8000 tcp:8000` |
+| Réseau local (WiFi) | `http://192.168.x.x:8000/api/` (IP du serveur) |
+
+4. Pour le tunnel USB (téléphone physique) :
+```bash
+adb reverse tcp:8000 tcp:8000
+```
+*(Relancer après chaque redémarrage de l'app ou déconnexion USB)*
+
+5. Lancer l'application (**bouton Run ▶** dans Android Studio).
 
 ---
 
-## 📁 Structure
+## Comptes de test
 
-```
-gestion-scolaire/
-├── app/
-│   ├── Http/
-│   │   ├── Controllers/
-│   │   │   ├── DashboardController.php
-│   │   │   ├── ClasseController.php
-│   │   │   ├── EleveController.php
-│   │   │   ├── PaiementController.php
-│   │   │   ├── NoteController.php
-│   │   │   ├── EnseignantController.php
-│   │   │   └── ParentController.php
-│   │   └── Middleware/
-│   │       └── CheckRole.php
-│   └── Models/
-│       ├── User.php
-│       ├── Classe.php
-│       ├── Eleve.php
-│       ├── Paiement.php
-│       ├── Note.php
-│       └── Enseignant.php
-├── database/migrations/
-├── resources/views/
-│   ├── layouts/
-│   ├── dashboard.blade.php
-│   ├── classes/
-│   ├── eleves/
-│   ├── paiements/
-│   ├── notes/
-│   ├── enseignants/
-│   ├── parent/
-│   └── pdf/
-└── routes/web.php
-```
+### Application web (EcolePrime)
+| Rôle | Email |
+|---|---|
+| Gestionnaire | `gestionnaire@example.com` |
+| Enseignant | `enseignant@example.com` |
+
+### Application mobile (parent)
+| Champ | Parent 1 | Parent 2 |
+|---|---|---|
+| Email | `aziz@gmail.com` | `biba@gmail.com` |
+| Mot de passe | `password123` | `password123` |
+| Nom de l'enfant | `toe` | `SIE` |
+| Classe | `CP2` | `CP2` |
 
 ---
-                           
-## 📄 Licence
 
-Projet académique — Université Joseph KI-ZERBO licence3 2025–2026
+## Liaison entre les deux applications
+
+Les deux applications partagent la **même base de données MySQL** (`gestion_scolaire`) via une API REST intégrée au projet web Laravel.
+
+| Action côté app web | Résultat côté app mobile |
+|---|---|
+| Enseignant saisit les notes | Parent voit les notes et moyennes mises à jour |
+| Enseignant signale une absence | Parent reçoit une notification + voit l'absence dans l'onglet Absences |
+| Gestionnaire publie une annonce | Parent reçoit une notification dans l'onglet Annonces |
+| Gestionnaire enregistre un paiement | Parent voit le solde mis à jour |
+| Parent effectue un paiement depuis l'app mobile | Gestionnaire voit le versement dans l'app web |
+
+Aucune synchronisation manuelle n'est nécessaire — les deux interfaces lisent et écrivent dans la même base en temps réel.
