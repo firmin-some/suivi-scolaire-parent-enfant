@@ -24,8 +24,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -75,11 +77,11 @@ fun MainApp() {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val authRepository = remember { AuthRepository(context) }
+    var pendingDestination by remember { mutableStateOf("dashboard") }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // La barre du haut et du bas sont cachées sur splash, login et verify
     val showAppBars = currentRoute != null
             && currentRoute != "splash"
             && currentRoute != "login"
@@ -100,7 +102,7 @@ fun MainApp() {
                         IconButton(onClick = {
                             coroutineScope.launch {
                                 authRepository.logout()
-                                navController.navigate("login") {
+                                navController.navigate("splash") {
                                     popUpTo(navController.graph.id) { inclusive = true }
                                 }
                             }
@@ -140,7 +142,8 @@ fun MainApp() {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable("splash") {
-                SplashScreen(onCommencer = {
+                SplashScreen(onCommencer = { destination ->
+                    pendingDestination = destination
                     navController.navigate("login") {
                         popUpTo("splash") { inclusive = true }
                     }
@@ -155,7 +158,7 @@ fun MainApp() {
             }
             composable("verify") {
                 VerifyChildScreen(onVerified = {
-                    navController.navigate("dashboard") {
+                    navController.navigate(pendingDestination) {
                         popUpTo("verify") { inclusive = true }
                     }
                 })

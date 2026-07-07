@@ -3,6 +3,7 @@ package bf.ujkz.suiviscolaireparent.ui.splash
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,7 +26,7 @@ import bf.ujkz.suiviscolaireparent.ui.theme.SchoolBlue
 import bf.ujkz.suiviscolaireparent.ui.theme.SchoolGold
 
 @Composable
-fun SplashScreen(onCommencer: () -> Unit) {
+fun SplashScreen(onCommencer: (destination: String) -> Unit) {
     var visible by remember { mutableStateOf(false) }
     val alpha by animateFloatAsState(
         targetValue = if (visible) 1f else 0f,
@@ -33,9 +34,7 @@ fun SplashScreen(onCommencer: () -> Unit) {
         label = "alpha"
     )
 
-    LaunchedEffect(Unit) {
-        visible = true
-    }
+    LaunchedEffect(Unit) { visible = true }
 
     Box(
         modifier = Modifier
@@ -54,7 +53,6 @@ fun SplashScreen(onCommencer: () -> Unit) {
                 .padding(top = 60.dp, bottom = 40.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             // Logo école
             Box(
                 modifier = Modifier
@@ -73,7 +71,6 @@ fun SplashScreen(onCommencer: () -> Unit) {
 
             Spacer(Modifier.height(24.dp))
 
-            // Titre
             Text(
                 text = "Suivi scolaire",
                 fontSize = 32.sp,
@@ -81,7 +78,6 @@ fun SplashScreen(onCommencer: () -> Unit) {
                 color = Color.White
             )
 
-            // Sous-titre avec ligne dorée
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
@@ -108,25 +104,29 @@ fun SplashScreen(onCommencer: () -> Unit) {
 
             Spacer(Modifier.height(40.dp))
 
-            // Liste des fonctionnalités
+            // Fonctionnalités cliquables
             val features = listOf(
-                Pair(Icons.Default.Star, "Notes"),
-                Pair(Icons.Default.ShoppingCart, "Paiements"),
-                Pair(Icons.Default.Description, "Bulletins"),
-                Pair(Icons.Default.DateRange, "Absences"),
-                Pair(Icons.Default.Notifications, "Notifications"),
+                Triple(Icons.Default.Star, "Notes", "notes"),
+                Triple(Icons.Default.ShoppingCart, "Paiements", "paiements"),
+                Triple(Icons.Default.Description, "Bulletins", "notes"),
+                Triple(Icons.Default.DateRange, "Absences", "absences"),
+                Triple(Icons.Default.Notifications, "Notifications", "annonces"),
             )
 
-            features.forEach { (icon, label) ->
-                FeatureItem(icon = icon, label = label)
+            features.forEach { (icon, label, destination) ->
+                FeatureItem(
+                    icon = icon,
+                    label = label,
+                    onClick = { onCommencer(destination) }
+                )
                 Spacer(Modifier.height(12.dp))
             }
 
             Spacer(Modifier.weight(1f))
 
-            // Bouton COMMENCER
+            // Bouton COMMENCER → dashboard par défaut
             Button(
-                onClick = onCommencer,
+                onClick = { onCommencer("dashboard") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -152,9 +152,17 @@ fun SplashScreen(onCommencer: () -> Unit) {
 }
 
 @Composable
-private fun FeatureItem(icon: ImageVector, label: String) {
+private fun FeatureItem(
+    icon: ImageVector,
+    label: String,
+    onClick: () -> Unit
+) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .clickable { onClick() }
+            .padding(vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -169,6 +177,6 @@ private fun FeatureItem(icon: ImageVector, label: String) {
         Spacer(Modifier.width(16.dp))
         Text(text = label, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Medium)
         Spacer(Modifier.weight(1f))
-        Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color.White.copy(alpha = 0.4f))
+        Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color.White.copy(alpha = 0.6f))
     }
 }
